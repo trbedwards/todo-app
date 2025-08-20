@@ -1,0 +1,65 @@
+#:kivy 2.3.0
+
+<RootWidget>:
+    BoxLayout:
+        orientation: "vertical"
+        padding: "12dp"
+        spacing: "8dp"
+
+        Label:
+            text: "TODOs"
+            font_size: "22sp"
+            size_hint_y: None
+            height: self.texture_size[1] + dp(8)
+
+        BoxLayout:
+            size_hint_y: None
+            height: "40dp"
+            spacing: "6dp"
+            TextInput:
+                id: title_in
+                hint_text: "Task title"
+                multiline: False
+            TextInput:
+                id: due_in
+                hint_text: "Due (ISO datetime, optional)"
+                multiline: False
+            Button:
+                text: "Add"
+                on_release: root.add_task()
+
+        RecycleView:
+            id: rv
+            viewclass: "TaskItem"
+            RecycleBoxLayout:
+                default_size: None, dp(48)
+                default_size_hint: 1, None
+                size_hint_y: None
+                height: self.minimum_height
+                orientation: 'vertical'
+
+<TaskItem@BoxLayout>:
+    size_hint_y: None
+    height: dp(48)
+    padding: dp(6)
+    spacing: dp(6)
+    Label:
+        text: root.data.get("title", "")
+        text_size: self.size
+        halign: "left"
+        valign: "middle"
+    Label:
+        text: (root.data.get("due_at") or "")
+        text_size: self.size
+        halign: "right"
+        valign: "middle"
+    Button:
+        text: "Toggle"
+        size_hint_x: None
+        width: dp(80)
+        on_release: app.toggle_task(root.data.get("id"))
+    Button:
+        text: "Del"
+        size_hint_x: None
+        width: dp(60)
+        on_release: app.delete_task(root.data.get("id"))
