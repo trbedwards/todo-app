@@ -2,15 +2,9 @@ name: todo-app
 channels:
   - conda-forge
 dependencies:
-  - python=3.11
   - ipython
   - kivy
   - plyer
   - fastapi
   - nodejs
   - sqlmodel
-  - sqlalchemy
-  - uvicorn
-  - watchfiles
-  - httpx
-  - websockets
