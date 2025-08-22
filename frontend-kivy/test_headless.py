@@ -3,18 +3,22 @@ import os
 import sys
 from time import sleep
 
-# Ensure Kivy runs without a window (headless)
-os.environ.setdefault("KIVY_WINDOW", "mock")
-os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
+# Prefer SDL2 window when running under Xvfb
+if os.environ.get("DISPLAY"):
+    os.environ.setdefault("KIVY_WINDOW", "sdl2")
+else:
+    os.environ.setdefault("KIVY_WINDOW", "mock")
+
+os.environ.setdefault("SDL_VIDEODRIVER", "x11")
 os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
-os.environ.setdefault("KIVY_GL_BACKEND", "mock")
-os.environ.setdefault("KIVY_BCM_DISPMANX_ID", "0")
+os.environ.setdefault("KIVY_GL_BACKEND", "gl")
 os.environ.setdefault("KIVY_NO_ARGS", "1")
-os.environ.setdefault("KIVY_TEXT", "dummy")
+os.environ.setdefault("KIVY_TEXT", "sdl2")
 os.environ.setdefault("KIVY_AUDIO", "dummy")
+os.environ.setdefault("KIVY_CLIPBOARD", "dummy")
+os.environ.setdefault("KCFG_INPUT_MTDEV", "0")
 os.environ.setdefault("XDG_RUNTIME_DIR", "/tmp")
 
-from kivy.base import EventLoop
 from kivy.config import Config
 Config.set("kivy", "log_level", "info")
 Config.set("input", "mouse", "mouse")
@@ -43,21 +47,20 @@ async def main():
         sys.exit(2)
 
     app = TodoApp()
-    # Build without starting full run loop
     root = app.build()
-    # Simulate entering title and due date
-    root.ids.title_in.text = "Test task from CI"
+    title = "Test task from Xvfb"
+    root.ids.title_in.text = title
     root.ids.due_in.text = "2099-01-01T10:00:00"
-    # Call add_task (which calls backend synchronously via httpx)
-    root.add_task()
+    await app.api_create_task(title, "2099-01-01T10:00:00")
 
-    # Fetch tasks and assert our task exists
     async with httpx.AsyncClient() as client:
         r = await client.get(f"{API_BASE}/tasks")
         r.raise_for_status()
         tasks = r.json()
-        assert any(t["title"] == "Test task from CI" for t in tasks), "Task not created"
-        print("OK: Task created and listed.")
+        ok = any(t["title"] == "Test task from Xvfb" for t in tasks)
+        print("OK:" if ok else "FAIL:", "Task created and listed." if ok else "Task not created")
+        if not ok:
+            sys.exit(3)
 
 if __name__ == "__main__":
     asyncio.run(main())
