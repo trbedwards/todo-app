@@ -208,3 +208,7 @@ __marimo__/
 
 # Pycharm
 .idea/
+
+# Local sqlite DB and core dumps
+/todo.db
+/core
