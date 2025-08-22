@@ -212,3 +212,6 @@ __marimo__/
 # Local sqlite DB and core dumps
 /todo.db
 /core
+
+# Logs
+.uvicorn.*
