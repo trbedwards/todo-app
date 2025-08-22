@@ -1,2 +1,2 @@
 PlatformWithVersion=Python 
-BuildCommands=conda env create --file environment.yml --prefix ./venv --quiet
+BuildCommands=apt-get update -y && apt-get install -y xvfb libsdl2-2.0-0 libsdl2-image-2.0-0 libsdl2-ttf-2.0-0 libmtdev1 xclip xsel fonts-dejavu-core && conda env create --file environment.yml --prefix ./venv --quiet

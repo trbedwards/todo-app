@@ -43,13 +43,16 @@
     height: dp(48)
     padding: dp(6)
     spacing: dp(6)
+    task_id: 0
+    title: ""
+    due_at: ""
     Label:
-        text: root.data.get("title", "")
+        text: root.title
         text_size: self.size
         halign: "left"
         valign: "middle"
     Label:
-        text: (root.data.get("due_at") or "")
+        text: root.due_at
         text_size: self.size
         halign: "right"
         valign: "middle"
@@ -57,9 +60,9 @@
         text: "Toggle"
         size_hint_x: None
         width: dp(80)
-        on_release: app.toggle_task(root.data.get("id"))
+        on_release: app.toggle_task(root.task_id)
     Button:
         text: "Del"
         size_hint_x: None
         width: dp(60)
-        on_release: app.delete_task(root.data.get("id"))
+        on_release: app.delete_task(root.task_id)

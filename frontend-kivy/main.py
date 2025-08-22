@@ -72,7 +72,7 @@ class TodoApp(App):
     @mainthread
     def _set_tasks(self, tasks):
         rv = self.root.ids.rv
-        rv.data = [{"id": t["id"], "title": ("✓ " if t["completed"] else "• ") + t["title"], "due_at": t["due_at"]} for t in tasks]
+        rv.data = [{"task_id": t["id"], "title": ("✓ " if t["completed"] else "• ") + t["title"], "due_at": t["due_at"]} for t in tasks]
 
     async def api_create_task(self, title: str, due_at_iso: str | None):
         payload = {"title": title, "completed": False, "due_at": due_at_iso}
