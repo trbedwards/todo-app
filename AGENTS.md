@@ -23,7 +23,7 @@ This app is split into two separate parts; a backend and frontend.
 
 The backend will be written in Python, with a FastAPI intermediary layer for CRUD (create, read, update delete) of tasks. A locally running HTTP server, uvicorn, will allow interaction with FastAPI in order to facilitate CRUD.
 
-The frontend will initially be written in Python Kivy. This will provide the user interface which will interact with the backend via HTTP calls for CRUD. Once all or nearly all the features are complete, the intention is to replace the Python Kivy frontend with React Native, which is also cross-platform but a much better framework (the author is much more familiar with Python/Kivy than with React/Javascript, hence why Kivy is being used first).
+The frontend will initially be written in Python Kivy. This will provide the user interface which will interact with the backend via HTTP calls for CRUD. Once all or nearly all the features are complete, the intention is to replace the Python Kivy frontend with React Native, which is also cross-platform but a much better framework (the author is much more familiar with Python/Kivy than with React/JavaScript, hence why Kivy is being used first).
 
 ## TODO List for Codex Agent
 
