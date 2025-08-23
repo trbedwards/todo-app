@@ -1,3 +1,4 @@
+# Note for AI agents: Do not add new conda packages here unless explicitly instructed; some dependencies are intentionally included implicitly.
 name: todo-app
 channels:
   - conda-forge
