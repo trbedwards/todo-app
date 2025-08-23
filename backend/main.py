@@ -5,7 +5,7 @@ from typing import List, Set
 from datetime import datetime, timezone
 import asyncio
 
-from .db import init_db, get_session
+from .db import init_db, get_session, engine
 from .models import Task, TaskCreate, TaskRead, TaskUpdate
 from sqlmodel import Session
 
@@ -108,9 +108,9 @@ async def reminder_scheduler():
     await asyncio.sleep(1)
     while True:
         try:
-            from .db import get_session
             from .models import Task
-            with get_session() as session:
+            # create and close sessions manually in this background task
+            with Session(engine) as session:
                 now = datetime.now(timezone.utc)
                 tasks = session.exec(select(Task).where(Task.completed == False)).all()
                 for t in tasks:
