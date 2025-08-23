@@ -21,14 +21,8 @@ jobs:
           auto-activate-base: false
           use-mamba: true
       - name: Install test dependencies
-        run: |
-          conda activate todo-app
-          mamba install -y pytest pytest-asyncio
+        run: mamba install -y pytest pytest-asyncio
       - name: Start backend server
-        run: |
-          conda activate todo-app
-          scripts/run_server_bg.sh
+        run: scripts/run_server_bg.sh
       - name: Run tests
-        run: |
-          conda activate todo-app
-          pytest
+        run: pytest
