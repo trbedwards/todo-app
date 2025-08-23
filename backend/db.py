@@ -8,4 +8,11 @@ def init_db():
     SQLModel.metadata.create_all(engine)
 
 def get_session():
-    return Session(engine)
+    """Yield a database session and ensure it's closed after use.
+
+    When used as a FastAPI dependency, this will provide a session for the
+    duration of the request and then close it. This prevents connection leaks
+    that occurred when sessions were returned without being properly closed.
+    """
+    with Session(engine) as session:
+        yield session
