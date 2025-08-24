@@ -10,7 +10,15 @@ from kivy.clock import Clock, mainthread
 
 import httpx
 import websockets
-from plyer import notification
+try:
+    from plyer import notification
+except Exception:  # pragma: no cover - fallback for environments without plyer
+    class _DummyNotification:
+        @staticmethod
+        def notify(*args, **kwargs):
+            pass
+
+    notification = _DummyNotification()
 
 API_BASE = "http://127.0.0.1:8000"  # change to your server when needed
 WS_URL   = "ws://127.0.0.1:8000/ws/alerts"
