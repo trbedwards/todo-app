@@ -15,7 +15,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install system dependencies
-        run: sudo apt-get update -y && sudo apt-get install -y xvfb libsdl2-2.0-0 libsdl2-image-2.0-0 libsdl2-ttf-2.0-0 libmtdev1 xclip xsel fonts-dejavu-core
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y xvfb libsdl2-2.0-0 libsdl2-image-2.0-0 libsdl2-ttf-2.0-0 libmtdev1 xclip xsel fonts-dejavu-core
       - name: Set up Conda
         uses: conda-incubator/setup-miniconda@v3
         with:
@@ -24,8 +26,48 @@ jobs:
           auto-activate-base: false
           use-mamba: true
       - name: Install test dependencies
-        run: conda install -y pytest pytest-asyncio
+        run: conda install -y pytest pytest-asyncio pytest-cov pytest-html
       - name: Start backend server
         run: scripts/run_server_bg.sh
       - name: Run tests
-        run: xvfb-run -a pytest
+        run: xvfb-run -a pytest --cov=backend --cov-report=xml --cov-report=html --cov-report=term --junitxml=pytest.xml --html=pytest.html --self-contained-html
+      - name: Prepare reports
+        run: |
+          mkdir report
+          mv htmlcov report/coverage
+          mv pytest.html report/
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.xml
+      - name: Upload pytest report
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-report
+          path: pytest.xml
+      - name: Upload HTML reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: html-report
+          path: report
+      - name: Upload Pages artifact
+        if: github.event_name == 'push'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: report
+
+  pages:
+    needs: tests
+    if: github.event_name == 'push'
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy reports to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
