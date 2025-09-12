@@ -8,6 +8,11 @@ on:
   pull_request:
     branches: ["**"]
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 jobs:
   tests:
     runs-on: ubuntu-latest
@@ -16,6 +21,9 @@ jobs:
         shell: bash -l {0}
     steps:
       - uses: actions/checkout@v4
+      - name: Setup Pages
+        if: github.event_name == 'push'
+        uses: actions/configure-pages@v4
       - name: Install system dependencies
         run: |
           sudo apt-get update -y
@@ -35,7 +43,7 @@ jobs:
         run: xvfb-run -a pytest --cov=backend --cov-report=xml --cov-report=html --cov-report=term --junitxml=pytest.xml --html=pytest.html --self-contained-html
       - name: Prepare reports
         run: |
-          mkdir report
+          mkdir -p report
           mv htmlcov report/coverage
           mv pytest.html report/
       - name: Upload coverage report

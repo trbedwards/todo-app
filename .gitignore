@@ -216,3 +216,9 @@ __marimo__/
 
 # Logs
 .uvicorn.*
+
+# Test report artifacts
+report/*
+!report/index.html
+pytest.html
+pytest.xml
