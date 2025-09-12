@@ -6,7 +6,6 @@ on:
       - main
       - master
   pull_request:
-    branches: ["**"]
 
 permissions:
   contents: read
@@ -22,7 +21,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Setup Pages
-        if: github.event_name == 'push'
         uses: actions/configure-pages@v4
       - name: Install system dependencies
         run: |
@@ -62,14 +60,12 @@ jobs:
           name: html-report
           path: report
       - name: Upload Pages artifact
-        if: github.event_name == 'push'
         uses: actions/upload-pages-artifact@v3
         with:
           path: report
 
   pages:
     needs: tests
-    if: github.event_name == 'push'
     permissions:
       pages: write
       id-token: write
