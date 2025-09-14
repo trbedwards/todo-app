@@ -3,26 +3,8 @@ import threading
 from datetime import datetime, date
 import json
 
-# Try to use KivyMD for date/time pickers; fall back gracefully if unavailable
-try:  # pragma: no cover - import side effects vary by environment
-    from kivymd.app import MDApp
-    from kivymd.uix.pickers import MDDatePicker, MDTimePicker
-    _KIVYMD = True
-except BaseException:  # pragma: no cover - allow tests without KivyMD deps
-    from kivy.app import App as MDApp  # type: ignore
-
-    class MDDatePicker:  # minimal stubs used in tests
-        def bind(self, **kwargs):
-            pass
-
-        def open(self):
-            pass
-
-    class MDTimePicker(MDDatePicker):
-        pass
-
-    _KIVYMD = False
-
+from kivymd.app import MDApp
+from kivymd.uix.pickers import MDDatePicker, MDTimePicker
 from kivy.lang import Builder
 from kivy.uix.boxlayout import BoxLayout
 from kivy.clock import Clock, mainthread
