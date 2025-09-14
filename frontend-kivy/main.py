@@ -4,7 +4,7 @@ from datetime import datetime, date
 import json
 
 from kivymd.app import MDApp
-from kivymd.uix.pickers import MDDatePicker, MDTimePicker
+from kivymd.uix.picker import MDDatePicker, MDTimePicker
 from kivy.lang import Builder
 from kivy.uix.boxlayout import BoxLayout
 from kivy.clock import Clock, mainthread
