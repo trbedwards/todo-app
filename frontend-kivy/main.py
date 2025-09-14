@@ -1,9 +1,28 @@
 import asyncio
 import threading
-from datetime import datetime
+from datetime import datetime, date
 import json
 
-from kivy.app import App
+# Try to use KivyMD for date/time pickers; fall back gracefully if unavailable
+try:  # pragma: no cover - import side effects vary by environment
+    from kivymd.app import MDApp
+    from kivymd.uix.pickers import MDDatePicker, MDTimePicker
+    _KIVYMD = True
+except BaseException:  # pragma: no cover - allow tests without KivyMD deps
+    from kivy.app import App as MDApp  # type: ignore
+
+    class MDDatePicker:  # minimal stubs used in tests
+        def bind(self, **kwargs):
+            pass
+
+        def open(self):
+            pass
+
+    class MDTimePicker(MDDatePicker):
+        pass
+
+    _KIVYMD = False
+
 from kivy.lang import Builder
 from kivy.uix.boxlayout import BoxLayout
 from kivy.clock import Clock, mainthread
@@ -19,17 +38,17 @@ Builder.load_file("kv/app.kv")
 
 class RootWidget(BoxLayout):
     def add_task(self):
-        app = App.get_running_app()
+        app = MDApp.get_running_app()
         title = self.ids.title_in.text.strip()
         due_raw = self.ids.due_in.text.strip()
         if not title:
             return
         due_at = None
         if due_raw:
-            # Expect ISO8601 like "2025-08-19T14:00:00Z" or "2025-08-19T14:00:00"
+            # Expect ISO8601 like "2025-08-19T14:00:00" (no timezone)
             try:
                 # Let backend treat naive as UTC; keep it simple here
-                due_at = datetime.fromisoformat(due_raw.replace("Z",""))
+                due_at = datetime.fromisoformat(due_raw)
                 due_at = due_at.isoformat()
             except Exception:
                 due_at = None
@@ -39,15 +58,34 @@ class RootWidget(BoxLayout):
         self.ids.due_in.text = ""
         asyncio.run(app.refresh_tasks())
 
-class TodoApp(App):
+class TodoApp(MDApp):
     def build(self):
         self.title = "Kivy TODO"
         self.client = httpx.Client(timeout=10)
         root = RootWidget()
+        self._selected_date: date | None = None
         Clock.schedule_once(lambda *_: asyncio.run(self.refresh_tasks()), 0.2)
         # Start WebSocket listener in a thread so Kivy main loop stays free
         threading.Thread(target=self._start_ws_thread, daemon=True).start()
         return root
+
+    # ---------- Date/time picker helpers ----------
+    def open_date_picker(self):
+        picker = MDDatePicker()
+        picker.bind(on_save=self._on_date_save, on_cancel=lambda *_: None)
+        picker.open()
+
+    def _on_date_save(self, picker, value, date_range):
+        self._selected_date = value
+        time_picker = MDTimePicker()
+        time_picker.bind(on_save=self._on_time_save, on_cancel=lambda *_: None)
+        time_picker.open()
+
+    def _on_time_save(self, picker, time_obj):
+        if self._selected_date is None:
+            return
+        dt = datetime.combine(self._selected_date, time_obj)
+        self.root.ids.due_in.text = dt.strftime("%Y-%m-%d %H:%M")
 
     async def refresh_tasks(self):
         try:

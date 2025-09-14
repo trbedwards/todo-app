@@ -24,6 +24,8 @@
                 id: due_in
                 hint_text: "Due (ISO datetime, optional)"
                 multiline: False
+                readonly: True
+                on_focus: if self.focus: app.open_date_picker()
             Button:
                 text: "Add"
                 on_release: root.add_task()
