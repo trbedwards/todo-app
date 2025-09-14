@@ -5,6 +5,7 @@ channels:
 dependencies:
   - ipython
   - kivy
+  - kivymd
   - plyer
   - fastapi
   - nodejs
