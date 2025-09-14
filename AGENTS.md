@@ -18,6 +18,17 @@
 
 This app is designed to make managing your to-dos simple, flexible, and efficient!
 
+## Agent Guidelines
+When running tests automatically to verify your changes, especially those that involve the Kivy-based GUI, you must run `pytest` within a virtual X-server environment. This allows the GUI tests to run in a headless environment without a physical display.
+
+Instead of invoking `pytest` directly, please use the following command:
+
+```bash
+xvfb-run -a pytest
+```
+
+This ensures that any GUI-related tests will execute correctly.
+
 ## Technical details
 This app is split into two separate parts; a backend and frontend. 
 
