@@ -27,11 +27,18 @@ def on_startup():
     init_db()
 
 
+def to_naive_utc(dt: datetime) -> datetime:
+    """Convert timezone-aware datetimes to naive UTC."""
+    if dt.tzinfo is not None:
+        return dt.astimezone(timezone.utc).replace(tzinfo=None)
+    return dt
+
+
 def extract_due_at(title: str) -> Optional[datetime]:
     """Parse natural language dates from the task title."""
     result = search_dates(title, settings={"RETURN_AS_TIMEZONE_AWARE": True})
     if result:
-        return result[0][1]
+        return to_naive_utc(result[0][1])
     return None
 
 # ---------- CRUD ----------
@@ -45,6 +52,8 @@ def create_task(payload: TaskCreate, session: Session = Depends(get_session)):
         parsed = extract_due_at(payload.title)
         if parsed:
             payload.due_at = parsed
+    else:
+        payload.due_at = to_naive_utc(payload.due_at)
     task = Task(**payload.dict())
     session.add(task)
     session.commit()
@@ -68,6 +77,8 @@ def patch_task(task_id: int, payload: TaskUpdate, session: Session = Depends(get
         parsed = extract_due_at(data["title"])
         if parsed:
             data["due_at"] = parsed
+    if "due_at" in data and data["due_at"] is not None:
+        data["due_at"] = to_naive_utc(data["due_at"])
     for k, v in data.items():
         setattr(task, k, v)
     session.add(task)

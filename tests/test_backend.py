@@ -71,6 +71,12 @@ def test_parses_due_at_from_title_on_update(client):
     assert resp.json()["due_at"].startswith("2030-08-01T09:00:00")
 
 
+def test_parsed_due_at_normalized_to_utc(client):
+    resp = client.post("/tasks", json={"title": "Meet on Aug 1 2030 09:00 PDT"})
+    assert resp.status_code == 201
+    assert resp.json()["due_at"].startswith("2030-08-01T16:00:00")
+
+
 def test_websocket_broadcast(client):
     with client.websocket_connect("/ws/alerts") as ws:
         asyncio.get_event_loop().run_until_complete(manager.broadcast({"ping": "pong"}))
