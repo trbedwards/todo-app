@@ -1,9 +1,11 @@
 from fastapi import FastAPI, HTTPException, Depends, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from sqlmodel import select
-from typing import List, Set
+from typing import List, Set, Optional
 from datetime import datetime, timezone
 import asyncio
+
+from dateparser.search import search_dates
 
 from .db import init_db, get_session, engine
 from .models import Task, TaskCreate, TaskRead, TaskUpdate
@@ -24,6 +26,14 @@ app.add_middleware(
 def on_startup():
     init_db()
 
+
+def extract_due_at(title: str) -> Optional[datetime]:
+    """Parse natural language dates from the task title."""
+    result = search_dates(title, settings={"RETURN_AS_TIMEZONE_AWARE": True})
+    if result:
+        return result[0][1]
+    return None
+
 # ---------- CRUD ----------
 @app.get("/tasks", response_model=List[TaskRead])
 def list_tasks(session: Session = Depends(get_session)):
@@ -31,6 +41,10 @@ def list_tasks(session: Session = Depends(get_session)):
 
 @app.post("/tasks", response_model=TaskRead, status_code=201)
 def create_task(payload: TaskCreate, session: Session = Depends(get_session)):
+    if payload.due_at is None:
+        parsed = extract_due_at(payload.title)
+        if parsed:
+            payload.due_at = parsed
     task = Task(**payload.dict())
     session.add(task)
     session.commit()
@@ -50,6 +64,10 @@ def patch_task(task_id: int, payload: TaskUpdate, session: Session = Depends(get
     if not task:
         raise HTTPException(404, "Task not found")
     data = payload.dict(exclude_unset=True)
+    if "title" in data and "due_at" not in data:
+        parsed = extract_due_at(data["title"])
+        if parsed:
+            data["due_at"] = parsed
     for k, v in data.items():
         setattr(task, k, v)
     session.add(task)

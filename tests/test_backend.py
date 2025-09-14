@@ -56,6 +56,21 @@ def test_crud_lifecycle(client):
     assert resp.status_code == 404
 
 
+def test_parses_due_at_from_title_on_create(client):
+    payload = {"title": "Pay bills on July 15 2030 at 5pm"}
+    resp = client.post("/tasks", json=payload)
+    assert resp.status_code == 201
+    assert resp.json()["due_at"].startswith("2030-07-15T17:00:00")
+
+
+def test_parses_due_at_from_title_on_update(client):
+    resp = client.post("/tasks", json={"title": "No date"})
+    task_id = resp.json()["id"]
+    resp = client.patch(f"/tasks/{task_id}", json={"title": "Meet on Aug 1 2030 09:00"})
+    assert resp.status_code == 200
+    assert resp.json()["due_at"].startswith("2030-08-01T09:00:00")
+
+
 def test_websocket_broadcast(client):
     with client.websocket_connect("/ws/alerts") as ws:
         asyncio.get_event_loop().run_until_complete(manager.broadcast({"ping": "pong"}))
