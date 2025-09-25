@@ -220,5 +220,6 @@ __marimo__/
 # Test report artifacts
 report/*
 !report/index.html
+!report/branch_template.html
 pytest.html
 pytest.xml
