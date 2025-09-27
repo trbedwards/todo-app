@@ -8,9 +8,7 @@ on:
   pull_request:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 jobs:
   tests:
@@ -34,14 +32,18 @@ jobs:
           auto-activate-base: false
           use-mamba: true
       - name: Install test dependencies
-        run: conda install -y pytest pytest-asyncio pytest-cov pytest-html
+        run: conda install -y pytest pytest-asyncio pytest-cov pytest-html dateparser
       - name: Run tests
         run: xvfb-run -a pytest --cov=backend --cov-report=xml --cov-report=html --cov-report=term --junitxml=pytest.xml --html=pytest.html --self-contained-html
       - name: Prepare reports
         run: |
-          mkdir -p report
-          mv htmlcov report/coverage
-          mv pytest.html report/
+          branch_dir="report/${GITHUB_REF_NAME}"
+          mkdir -p "${branch_dir}"
+          mv htmlcov "${branch_dir}/coverage"
+          mv pytest.html "${branch_dir}/"
+          cp report/branch_template.html "${branch_dir}/index.html"
+          sed -i "s/__BRANCH__/${GITHUB_REF_NAME}/g" "${branch_dir}/index.html"
+          python scripts/update_report_index.py --index report/index.html --branch "${GITHUB_REF_NAME}"
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
         with:
@@ -56,22 +58,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: html-report
-          path: report
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+          path: report/${GITHUB_REF_NAME}
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          path: report
-
-  pages:
-    needs: tests
-    permissions:
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Deploy reports to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: report
+          keep_files: true
