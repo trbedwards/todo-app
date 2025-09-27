@@ -43,16 +43,7 @@ jobs:
           mv pytest.html "${branch_dir}/"
           cp report/branch_template.html "${branch_dir}/index.html"
           sed -i "s/__BRANCH__/${GITHUB_REF_NAME}/g" "${branch_dir}/index.html"
-          python - <<'PYTHON'
-import os, pathlib
-branch = os.environ["GITHUB_REF_NAME"]
-index_path = pathlib.Path("report/index.html")
-link = f'  <li><a href="{branch}/index.html">{branch}</a></li>'
-text = index_path.read_text()
-if link not in text:
-    text = text.replace("</ul>", f"{link}\n</ul>")
-    index_path.write_text(text)
-PYTHON
+          python scripts/update_report_index.py --index report/index.html --branch "${GITHUB_REF_NAME}"
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
         with:
